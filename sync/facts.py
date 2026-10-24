@@ -474,8 +474,9 @@ def sync(args) -> int:
             changed = changed        # local-only mode: nothing to push
         elif changed or (ahead.isdigit() and int(ahead) > 0):
             stage_owned_paths()
-            code = git("commit", "-q", "-m", "facts(%s) %s" % (agent(), now()))
-            if code != 0 and "nothing to commit" not in git_out("status", "--short"):
+            cout = git_out("commit", "-q", "-m", "facts(%s) %s" % (agent(), now()))
+            if ("nothing to commit" not in cout and "no changes added" not in cout
+                    and git_out("status", "--porcelain")):
                 print("facts: commit failed (%s)" % git_out("status", "--short")[:160])
                 return 5
             pushed = False
