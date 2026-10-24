@@ -409,9 +409,10 @@ def sync(args) -> int:
         print("facts: not initialised — run `facts.py migrate` first")
         return 1
     lk = open(BRAIN / ".sync.lock", "w")
+    has_remote = bool(git_out("remote"))
     with_lock(lk)
     try:
-        if git("pull", "--rebase", "--autostash", "-q") != 0:
+        if has_remote and git("pull", "--rebase", "--autostash", "-q") != 0:
             git("rebase", "--abort")
             print("facts: PULL FAILED, nothing written (%s)" % git_out("status", "--short")[:200])
             return 2
@@ -467,9 +468,11 @@ def sync(args) -> int:
                             fh.write(line + "\n")
                             have.add(line)
 
-        ahead = git_out("rev-list", "--count", "@{u}..HEAD")
+        ahead = git_out("rev-list", "--count", "@{u}..HEAD") if has_remote else "0"
         pushed = True
-        if changed or (ahead.isdigit() and int(ahead) > 0):
+        if not has_remote:
+            changed = changed        # local-only mode: nothing to push
+        elif changed or (ahead.isdigit() and int(ahead) > 0):
             stage_owned_paths()
             code = git("commit", "-q", "-m", "facts(%s) %s" % (agent(), now()))
             if code != 0 and "nothing to commit" not in git_out("status", "--short"):
@@ -528,6 +531,10 @@ def migrate(args) -> int:
     if not policy.exists():
         policy.write_text(json.dumps({"limits": dict(DEFAULT_LIMIT),
                                       "note": "render budget = limits * 0.9"}, indent=1))
+    try:
+        build_index()
+    except Exception:
+        pass
     print("migrated %d entries into facts/ (agent %s)" % (len(ops), me))
     return 0
 
