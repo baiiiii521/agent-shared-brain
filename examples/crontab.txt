@@ -1,0 +1,2 @@
+# Linux: /!\ systemctl --user needs XDG_RUNTIME_DIR, cron does not set it
+*/10 * * * * XDG_RUNTIME_DIR=/run/user/$(id -u) /bin/sh $HOME/.hermes/brain/sync/brain_sync.sh >/dev/null 2>&1

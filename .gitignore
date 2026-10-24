@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.sync.lock
+.agent-id
+.state/
+logs/
+overflow/
