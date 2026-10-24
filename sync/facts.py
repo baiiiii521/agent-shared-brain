@@ -409,7 +409,7 @@ def sync(args) -> int:
         print("facts: not initialised — run `facts.py migrate` first")
         return 1
     lk = open(BRAIN / ".sync.lock", "w")
-    has_remote = bool(git_out("remote"))
+    has_remote = (BRAIN / ".git").exists() and bool(git_out("remote"))
     with_lock(lk)
     try:
         if has_remote and git("pull", "--rebase", "--autostash", "-q") != 0:
